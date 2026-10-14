@@ -8,6 +8,9 @@
 # -1 = Sold
 #  3 or greater = Unique barcode
 
+import numpy as np 
+
+
 ItemType = [
     ["CPU", 100], 
     ["Motherboard", 200], 
@@ -16,6 +19,9 @@ ItemType = [
 ]
 ItemInCart = []
 LastError = ""
+ErrorBuffer = []
+Logger = []
+ItemTotalCost = 0
 
 shelves = [
     # CPU
@@ -44,6 +50,8 @@ shelves = [
     ]
 ]
 
+def Log(Data):
+    Logger.append(Data)
 
 def sell_item(barcode):
     for s in range(4):
@@ -67,8 +75,8 @@ def CheckItemBarcode(barcode):
         for indexB, ValueB in enumerate(ValueA):
             for indexC, ValueC in enumerate(ValueB):
                 if shelves[indexA][indexB][indexC] == barcode:
-                    return [True, ItemType[indexA][0], ItemType[indexA][1]]
-    return [False, "Null", 0]
+                    return [True, ItemType[indexA][0], ItemType[indexA][1], [indexA, indexB, indexC]]
+    return [False, "Null", 0, [indexA, indexB, indexC]]
 
 def formatThe2dShelves(Item):
     displayText = ""
@@ -115,56 +123,66 @@ while True:
         print("Sell Item. Type 99 to checkout.")
 
         while True:
-            barcode = int(input("Enter the barcode: "))
-            SearchBuffer = CheckItemBarcode(barcode)
+            try:
+                barcode = int(input("Enter the barcode: "))
+                SearchBuffer = CheckItemBarcode(barcode)
+                
+                if barcode == 99:
+                    print("\n\n*-------------Items Already Payed!:---------------*")
+                    for i in range(len(ItemInCart)):
+                        print(f"|{(i+1):^5}# Barcode:{ItemInCart[i][0]:^10}| ItemName:{ItemInCart[i][1]:^10}| Price:{ItemInCart[i][2]}|")
+                        ItemTotalCost += ItemInCart[i][2]
+                    print(f"-----> Total Item Cost: {ItemTotalCost:^10} <----")
+                    print("*-------------------------------------------------*")
+                    print("Total Price: Null")
+                    break
 
-            if barcode == 99:
-                print("\n\n*-------------Items Already Payed!:---------------*")
-                for i in range(len(ItemInCart)):
-                    print(f"|{(i+1):^5}# Barcode:{ItemInCart[i][0]:^10}| ItemName:{ItemInCart[i][1]:^10}| Price:{ItemInCart[i][2]}|")
-                    ItemTotalCost += ItemInCart[i][2]
-                print(f"-----> Total Item Cost: {ItemTotalCost:^10} <----")
-                print("*-------------------------------------------------*")
-                print("Total Price: Null")
-                break
-
-            if barcode == 1 or barcode == 2 or barcode == -1 or barcode == 0:
-                print("?/> This is Reserve Key Numbers.")
+                if barcode == 1 or barcode == 2 or barcode == -1 or barcode == 0:
+                    print("?/> This is Reserve Key Numbers.")
+                    continue
             
-            if SearchBuffer[0]:
-                print(f"Added To Cart: {SearchBuffer[1]} --> Price: {SearchBuffer[2]}")
-                addToCart(barcode, SearchBuffer[1], SearchBuffer[2])
-            else:
-                LastError = "Invalid Barcode."
-                print(f"!/> Error: {LastError:^20}")
+                if SearchBuffer[0]:
+                    print(f"Added To Cart: {SearchBuffer[1]} --> Price: {SearchBuffer[2]}")
+                    addToCart(barcode, SearchBuffer[1], SearchBuffer[2])
+                else:
+                    LastError = "Invalid Barcode."
+                    print(f"!/> Error: {LastError:^20}")
 
-            if len(ItemInCart) > 0:
-                ItemTotalCost = 0
-                print("*------------------------------------------------------*")
-                for i in range(len(ItemInCart)):
-                    print(f"|Barcode:{ItemInCart[i][0]:^10}| ItemName:{ItemInCart[i][1]:^10}| Price:{ItemInCart[i][2]}|")
-                    ItemTotalCost += ItemInCart[i][2]
-                print(f"-----> Total Estimate Cost: {ItemTotalCost:^10} <----")
-                print("*------------------------------------------------------*")
+                if len(ItemInCart) > 0:
+                    print("*------------------------------------------------------*")
+                    for i in range(len(ItemInCart)):
+                        print(f"|Barcode:{ItemInCart[i][0]:^10}| ItemName:{ItemInCart[i][1]:^10}| Price:{ItemInCart[i][2]}|")
+                        ItemTotalCost += ItemInCart[i][2]
+                    print(f"-----> Total Estimate Cost: {ItemTotalCost:^10} <----")
+                    print("*------------------------------------------------------*")
 
+            except Exception as e:
+                print(f"Error: {e}")
+                ErrorBuffer.append(e)
+
+           
     elif choice == "2":
-        print("Inventory Item. Type 99 to exit.")
+        print("Inventory Item. Type 99 tov exit.")
 
-        while True:
-            itemShelfType = input("Enter CPU, Motherboard, RAM, or Storage: ")
+        try:
+            while True:
+                itemShelfType = input("Enter CPU, Motherboard, RAM, or Storage: ")
 
-            if itemShelfType == "99":
-                break
-            elif itemShelfType.upper() == "CPU":
-                ShowAvailableItemInShelf(0)
-            elif itemShelfType.upper() == "MOTHERBOARD":
-                ShowAvailableItemInShelf(1)
-            elif itemShelfType.upper() == "RAM":
-                ShowAvailableItemInShelf(2)
-            elif itemShelfType.upper() == "STORAGE":
-                ShowAvailableItemInShelf(3)
-            else:
-                print("Invalid shelf type!")
+                if itemShelfType == "99":
+                    break
+                elif itemShelfType.upper() == "CPU":
+                    ShowAvailableItemInShelf(0)
+                elif itemShelfType.upper() == "MOTHERBOARD":
+                    ShowAailableItemInShelf(1)
+                elif itemShelfType.upper() == "RAM":
+                    ShowAvailableItemInShelf(2)
+                elif itemShelfType.upper() == "STORAGE":
+                    ShowAvailableItemInShelf(3)
+                else:
+                    print("Invalid shelf type!")
+        except Exception e:
+            print(f"Error: {e}")
+            ErrorBuffer.append(e)
 
     elif choice == "9":
         print("Exiting system...")
