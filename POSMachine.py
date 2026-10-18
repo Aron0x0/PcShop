@@ -50,10 +50,42 @@ shelves = [
     ]
 ]
 
+sizeX = 4
+sizeY = 3
+sizeZ = 5
+flatDimensionaShelves = [z for x in shelves for y in x for z in y]
+print(flatDimensionaShelves)
+
+
+def findARangeOfListIndex(x, y, z):
+    return (x-1) * (sizeY * sizeZ) + (y-1) * sizeZ + (z-1)
+def decodePositionIndex(ItemIndex):
+    # return [(ItemIndex // (sizeY*sizeZ)), (ItemIndex % (sizeY*sizeZ)) // sizeZ, (ItemIndex % sizeY)]
+    return [
+        ItemIndex // (sizeY * sizeZ) + 1, # X value
+        (ItemIndex % (sizeY * sizeZ)) // sizeZ + 1, # Y Value
+        ItemIndex % sizeZ + 1 #Z Value
+    ]
+
+def findARangeOfListValue(x, y, z):
+    return flatDimensionaShelves[findARangeOfListIndex(x, y, z)]
+
+print("Index of: ", findARangeOfListIndex(4, 3, 5))
+print(f"Result: {findARangeOfListValue(4, 3, 5)}")
+
+decodedPosition = decodePositionIndex(findARangeOfListIndex(4, 3, 5))
+print(f"Index Position in 3d: {decodedPosition[0]}, {decodedPosition[1]}, {decodedPosition[2]}")
+def findItemInList(barcode):
+    for ItemIndex, ItemValue in enumerate(flatDimensionaShelves):
+        if barcode == ItemValue:
+            return [True]
+    return False
+
+
 def Log(Data):
     Logger.append(Data)
 
-def sell_item(barcode):
+def sell_item(barcode): 
     for s in range(4):
         for r in range(3):
             for c in range(5):
@@ -77,6 +109,22 @@ def CheckItemBarcode(barcode):
                 if shelves[indexA][indexB][indexC] == barcode:
                     return [True, ItemType[indexA][0], ItemType[indexA][1], [indexA, indexB, indexC]]
     return [False, "Null", 0, [indexA, indexB, indexC]]
+
+def CheckItemBarcodeMod(barcode):
+    result = next(
+        (
+            (s, r, c)
+            for s, shelf in enumerate(shelves)
+            for r, row in enumerate(shelf)
+            for c, col in enumerate(row)
+            if value == barcode
+        ),
+        None
+    )
+    if result is not None:
+        s, r, c = result
+        return [True, ItemType[s][0], ItemType[r][1], [s, r, c]]
+    return [false, "Null", 0, [-1, -1, -1]]
 
 def formatThe2dShelves(Item):
     displayText = ""
@@ -117,7 +165,8 @@ while True:
     print("2. Show Item Available On Shelf")
     print("9. Exit")
 
-    choice = input("************\nEnter choice: ")
+    # choice = input("************\nEnter choice: ")
+    choice = "9"
 
     if choice == "1":
         print("Sell Item. Type 99 to checkout.")
@@ -180,10 +229,9 @@ while True:
                     ShowAvailableItemInShelf(3)
                 else:
                     print("Invalid shelf type!")
-        except Exception e:
+        except Exception as e:
             print(f"Error: {e}")
             ErrorBuffer.append(e)
-
     elif choice == "9":
         print("Exiting system...")
         break
