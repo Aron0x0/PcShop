@@ -54,13 +54,16 @@ sizeX = 4
 sizeY = 3
 sizeZ = 5
 flatDimensionaShelves = [z for x in shelves for y in x for z in y]
+flatDimensionalItemType = [y for x in ItemType for y in x]
+
 print(flatDimensionaShelves)
+print(flatDimensionalItemType)
 
 
 def findARangeOfListIndex(x, y, z):
     return (x-1) * (sizeY * sizeZ) + (y-1) * sizeZ + (z-1)
+
 def decodePositionIndex(ItemIndex):
-    # return [(ItemIndex // (sizeY*sizeZ)), (ItemIndex % (sizeY*sizeZ)) // sizeZ, (ItemIndex % sizeY)]
     return [
         ItemIndex // (sizeY * sizeZ) + 1, # X value
         (ItemIndex % (sizeY * sizeZ)) // sizeZ + 1, # Y Value
@@ -75,17 +78,39 @@ print(f"Result: {findARangeOfListValue(4, 3, 5)}")
 
 decodedPosition = decodePositionIndex(findARangeOfListIndex(4, 3, 5))
 print(f"Index Position in 3d: {decodedPosition[0]}, {decodedPosition[1]}, {decodedPosition[2]}")
+
 def findItemInList(barcode):
     for ItemIndex, ItemValue in enumerate(flatDimensionaShelves):
         if barcode == ItemValue:
-            return [True]
-    return False
+            return [True, ItemIndex, [decodePositionIndex(ItemIndex)[0], decodePositionIndex(ItemIndex)[1], decodePositionIndex(ItemIndex)[2]]]
+    return [False, [decodePositionIndex(ItemIndex)[0], decodePositionIndex(ItemIndex)[1], decodePositionIndex(ItemIndex)[2]]]
 
+def markItemAsSold(barcode):
+    Product = findItemInList(barcode)
+    if Product[0]:
+        flatDimensionaShelves[Product[1]] = -1
+        print(f"Product code: {Product[1]} -> Sold")
+    print(Product)
+
+def showInvetoryList():
+    Products = flatDimensionaShelves
+    LayerLayout = 1
+    for Index, Items in enumerate(Products):
+        # print(f"Shelf Number: {(Index+1):^40}")
+        if (Index) % 15 == 0:
+            print()
+            print(f"{f'Shelf Number: {(LayerLayout)}':^40}")  
+            LayerLayout+=1
+        print(f"| {Items:^10} ", end='')
+        if (Index+1) % 5 == 0:
+            print("|")
+            
+showInvetoryList()
 
 def Log(Data):
     Logger.append(Data)
 
-def sell_item(barcode): 
+def sell_item(barcode):  
     for s in range(4):
         for r in range(3):
             for c in range(5):
@@ -159,14 +184,19 @@ def ShowAvailableItemInShelf(shelvesNumber):
     for row in shelves[shelvesNumber]:
         formatThe2dShelves(row)
 
+oneTime = 0;
 while True:
+    if oneTime >= 1:
+        break;
     print("\n===== PC SHOP SALES SYSTEM =====")
     print("1. Sell an item")
     print("2. Show Item Available On Shelf")
     print("9. Exit")
 
     # choice = input("************\nEnter choice: ")
-    choice = "9"
+    choice = "1027"
+    markItemAsSold(int(choice))
+    print(flatDimensionaShelves)
 
     if choice == "1":
         print("Sell Item. Type 99 to checkout.")
@@ -238,3 +268,4 @@ while True:
 
     else:
         print("Invalid choice!")
+    oneTime+=1
