@@ -16,10 +16,7 @@ ItemType = [
     [40, "Storage", 40]
 ]
 
-ItemInCart = []
-LastError = ""
-ErrorBuffer = []
-Logger = []
+# ItemInCart = []
 ItemTotalCost = 0
 ItemTotalCostState = True
 
@@ -116,26 +113,23 @@ def showInvetoryList():
             print("|")
 
 def addToCart(buffer):
-    for list in ItemInCart: 
-        for barcode in list:
-            if buffer[2] == barcode:
-                print(f"{'Barcode Already Exist!':^20}")
-                return False
+    for i in range(1, len(flatDimensionalItemInCart) // size2dYItemTypes + 1):
+        if buffer[2] == flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 1)]:
+            print(f"{'Barcode Already Exist!':^20}")
+            return False
+
     Prefix = [str(buffer[2])[:2], "", 0]
+
     for i in range(len(flatDimensionalItemType)):
         if i % size2dYItemTypes == 0:
             if int(Prefix[0]) == flatDimensionalItemType[i]:
-                print(i)
                 Prefix[1] = flatDimensionalItemType[i+1]
                 Prefix[2] = flatDimensionalItemType[i+2]
-                
-                # print(f"Item Found: {Prefix[1]} --> Price: {Prefix[2]}")
 
-    # print(f"Added To Cart - ? {Prefix}")
-    ItemInCart.append([buffer[2], Prefix[1], Prefix[2]])
     flatDimensionalItemInCart.append(buffer[2])
     flatDimensionalItemInCart.append(Prefix[1])
     flatDimensionalItemInCart.append(Prefix[2])
+
     return True
 
 
@@ -216,15 +210,22 @@ while True:
                     print(f"{'No.':<5}{'Barcode':<15}{'Item Name':<25}{'Price':>15}")
                     print("-" * 66)
 
-                    for i, (barcode, itemName, price) in enumerate(ItemInCart, 1):
-                        print(f"{i:<5}{barcode:<15}{itemName:<25}{price:>15.2f}")
+                    ItemTotalCost = 0
 
-                    ItemTotalCost = sum(item[2] for item in ItemInCart)
+                    for i in range(1, len(flatDimensionalItemInCart) // size2dYItemTypes + 1):
+                        itemBarcode = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 1)]
+                        itemName = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 2)]
+                        price = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 3)]
+
+                        markItemAsSold(itemBarcode)
+
+                        print(f"{i:<5}{itemBarcode:<15}{itemName:<25}{price:>15.2f}")
+                        ItemTotalCost += price
 
                     print("-" * 66)
                     print(f"{'TOTAL:':>45}{ItemTotalCost:>21.2f}")
                     print("=" * 66)
-                    print(oneTime)
+                    flatDimensionalItemInCart.clear()
                     break
 
                 if barcode == 1 or barcode == 2 or barcode == -1 or barcode == 0:
@@ -238,19 +239,20 @@ while True:
                     LastError = "Invalid Barcode."
                     print(f"!/> Error: {LastError:^20}")
 
-                if len(ItemInCart) > 0:
+                if len(flatDimensionalItemInCart) > 0:
                     print("=" * 66)
                     print(f"{'PC SHOP - CART SUMMARY':^66}")
                     print("=" * 66)
                     print(f"{'No.':<5}{'Barcode':<15}{'Item Name':<25}{'Price':>15}")
                     print("-" * 66)
 
-                    for i, (barcode, itemName, price) in enumerate(ItemInCart, 1):
-                        print(f"{i:<5}{barcode:<15}{itemName:<25}{price:>15.2f}")
+                    for i in range(1, len(flatDimensionalItemInCart) // size2dYItemTypes + 1):
+                        barcode = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 1)]
+                        itemName = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 2)]
+                        price = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 3)]
 
-                        if ItemTotalCostState:
-                            oneTime += 1
-                            ItemTotalCost += price
+                        print(f"{i:<5}{barcode:<15}{itemName:<25}{price:>15.2f}")
+                        ItemTotalCost += price
 
                     print("-" * 66)
                     print(f"{'TOTAL ESTIMATE:':>45}{ItemTotalCost:>21.2f}")
