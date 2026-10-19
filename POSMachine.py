@@ -8,82 +8,93 @@
 # -1 = Sold
 #  3 or greater = Unique barcode
 
-import numpy as np 
-
 
 ItemType = [
-    ["CPU", 100], 
-    ["Motherboard", 200], 
-    ["Ram", 160], 
-    ["Storage", 40]
+    [10, "CPU", 100],
+    [20, "Motherboard", 200],
+    [30, "RAM", 160],
+    [40, "Storage", 40]
 ]
+
 ItemInCart = []
 LastError = ""
 ErrorBuffer = []
 Logger = []
 ItemTotalCost = 0
+ItemTotalCostState = True
 
 shelves = [
-    # CPU
+    # CPU (10xxxx)
     [
-        [1001, 0, 1002, 1, 0],
-        [1003, 2, 0, 1004, 1],
-        [0, 1005, 1006, 0, 2]
+        [100001, 0, 100002, 1, 0],
+        [100003, 2, 0, 100004, 1],
+        [0, 100005, 100006, 0, 2]
     ],
-    # Motherboard
+
+    # Motherboard (20xxxx)
     [
-        [0, 1007, 1, 1008, 0],
-        [1009, 0, 2, 1, 1010],
-        [1011, 1012, 0, 0, 1]
+        [0, 200001, 1, 200002, 0],
+        [200003, 0, 2, 1, 200004],
+        [200005, 200006, 0, 0, 1]
     ],
-    # RAM
+
+    # RAM (30xxxx)
     [
-        [1013, 1014, 0, 1015, 1],
-        [0, 1016, 1017, 1, 0],
-        [1018, 0, 2, 1019, 1020]
+        [300001, 300002, 0, 300003, 1],
+        [0, 300004, 300005, 1, 0],
+        [300006, 0, 2, 300007, 300008]
     ],
-    # Storage
+
+    # Storage (40xxxx)
     [
-        [1, 0, 1021, 1022, 2],
-        [1023, 1, 0, 1024, 0],
-        [1025, 1026, 1, 0, 1027]
+        [1, 0, 400001, 400002, 2],
+        [400003, 1, 0, 400004, 0],
+        [400005, 400006, 1, 0, 400007]
     ]
 ]
 
-sizeX = 4
-sizeY = 3
-sizeZ = 5
+size3dXShelves = 4 #3d Array Size X size3dXShelves
+size3dYShelves = 3 #3d Array Size Y size3dYShelves
+size3dZShelves = 5 #3d Array Size Z size3dZShelves
+
+size2dXItemTypes = 4 #2d Array Size X size2dXItemTypes
+size2dYItemTypes = 3 #2d Array Size Y size2dYItemTypes
+
 flatDimensionaShelves = [z for x in shelves for y in x for z in y]
 flatDimensionalItemType = [y for x in ItemType for y in x]
+flatDimensionalItemInCart = []
 
 print(flatDimensionaShelves)
 print(flatDimensionalItemType)
 
 
-def findARangeOfListIndex(x, y, z):
-    return (x-1) * (sizeY * sizeZ) + (y-1) * sizeZ + (z-1)
+def findARangeOfListIndexIn3d(x, y, z):
+    return (x-1) * (size3dYShelves * size3dZShelves) + (y-1) * size3dZShelves + (z-1)
 
-def decodePositionIndex(ItemIndex):
+def findARangeOfListIndexIn2d(x, y):
+    return (x-1) * size2dYItemTypes + (y-1)
+
+def decodePositionIndexIn3d(ItemIndex):
     return [
-        ItemIndex // (sizeY * sizeZ) + 1, # X value
-        (ItemIndex % (sizeY * sizeZ)) // sizeZ + 1, # Y Value
-        ItemIndex % sizeZ + 1 #Z Value
+        ItemIndex // (size3dYShelves * size3dZShelves) + 1, # X value
+        (ItemIndex % (size3dYShelves * size3dZShelves)) // size3dZShelves + 1, # Y Value
+        ItemIndex % size3dZShelves + 1 #Z Value
     ]
 
 def findARangeOfListValue(x, y, z):
-    return flatDimensionaShelves[findARangeOfListIndex(x, y, z)]
+    return flatDimensionaShelves[findARangeOfListIndexIn3d(x, y, z)]
 
-print("Index of: ", findARangeOfListIndex(4, 3, 5))
-print(f"Result: {findARangeOfListValue(4, 3, 5)}")
+# print("Index of: ", findARangeOfListIndexIn3d(4, 3, 5))
+# print(f"Result: {findARangeOfListValue(4, 3, 5)}")
 
-decodedPosition = decodePositionIndex(findARangeOfListIndex(4, 3, 5))
-print(f"Index Position in 3d: {decodedPosition[0]}, {decodedPosition[1]}, {decodedPosition[2]}")
+# decodedPosition = decodePositionIndexIn3d(findARangeOfListIndexIn3d(4, 3, 5))
+# print(f"Index Position in 3d: {decodedPosition[0]}, {decodedPosition[1]}, {decodedPosition[2]}")
 
 def findItemInList(barcode):
     for ItemIndex, ItemValue in enumerate(flatDimensionaShelves):
         if barcode == ItemValue:
-            return [True, ItemIndex, ItemValue, [decodePositionIndex(ItemIndex)[0], decodePositionIndex(ItemIndex)[1], decodePositionIndex(ItemIndex)[2]]]
-    return [False, Null, Null,[decodePositionIndex(ItemIndex)[0], decodePositionIndex(ItemIndex)[1], decodePositionIndex(ItemIndex)[2]]]
+            return [True, ItemIndex, ItemValue, [decodePositionIndexIn3d(ItemIndex)[0], decodePositionIndexIn3d(ItemIndex)[1], decodePositionIndexIn3d(ItemIndex)[2]]]
+    return [False, 0, 0,[decodePositionIndexIn3d(ItemIndex)[0], decodePositionIndexIn3d(ItemIndex)[1], decodePositionIndexIn3d(ItemIndex)[2]]]
 
 def markItemAsSold(barcode):
     Product = findItemInList(barcode)
@@ -96,7 +107,6 @@ def showInvetoryList():
     Products = flatDimensionaShelves
     LayerLayout = 1
     for Index, Items in enumerate(Products):
-        # print(f"Shelf Number: {(Index+1):^40}")
         if (Index) % 15 == 0:
             print()
             print(f"{f'Shelf Number: {(LayerLayout)}':^40}")  
@@ -104,37 +114,29 @@ def showInvetoryList():
         print(f"| {Items:^10} ", end='')
         if (Index+1) % 5 == 0:
             print("|")
-            
-showInvetoryList()
 
-def Log(Data):
-    Logger.append(Data)
-
-def formatThe2dShelves(Item):
-    displayText = ""
-
-    for e in Item:
-        if e == 0:
-            displayText = "Empty"
-        elif e == 1:
-            displayText = "Flexible Space"
-        elif e == 2:
-            displayText = "Incoming Stock"
-        elif e == -1:
-            displayText = "Sold"
-        elif e >= 3:
-            displayText = "InStock"
-        print(f"| {displayText:^17}", end='')
-    print("|")
-
-
-    
 def addToCart(buffer):
-    for i in range(len(ItemInCart)):
-        if buffer[0] == barcode:
-            print(f"{'Barcode Already Exist!':^20}")
-            return
-    ItemInCart.append([buffer[2], "Null", 1])
+    for list in ItemInCart: 
+        for barcode in list:
+            if buffer[2] == barcode:
+                print(f"{'Barcode Already Exist!':^20}")
+                return False
+    Prefix = [str(buffer[2])[:2], "", 0]
+    for i in range(len(flatDimensionalItemType)):
+        if i % size2dYItemTypes == 0:
+            if int(Prefix[0]) == flatDimensionalItemType[i]:
+                print(i)
+                Prefix[1] = flatDimensionalItemType[i+1]
+                Prefix[2] = flatDimensionalItemType[i+2]
+                
+                # print(f"Item Found: {Prefix[1]} --> Price: {Prefix[2]}")
+
+    # print(f"Added To Cart - ? {Prefix}")
+    ItemInCart.append([buffer[2], Prefix[1], Prefix[2]])
+    flatDimensionalItemInCart.append(buffer[2])
+    flatDimensionalItemInCart.append(Prefix[1])
+    flatDimensionalItemInCart.append(Prefix[2])
+    return True
 
 
 def ShowAvailableItemInShelf(shelvesNumber):
@@ -143,7 +145,51 @@ def ShowAvailableItemInShelf(shelvesNumber):
     for row in shelves[shelvesNumber]:
         formatThe2dShelves(row)
 
+
+def Log(Data):
+    Logger.append(Data)
+
+def checkItemStatus(Item):
+    if Item == 0:
+        displayText = "Empty"
+    elif Item == 1:
+        displayText = "Flexible Space"
+    elif Item == 2:
+        displayText = "Incoming Stock"
+    elif Item == -1:
+        displayText = "Sold"
+    elif Item >= 3:
+        displayText = "InStock"
+    else: 
+        displayText = "Unknown Status"
+    return displayText
+
+def formatTerminalResult3dShelves(Item):
+
+    Products = flatDimensionaShelves
+    LayerLayout = 1
+    for Index, Items in enumerate(Products):
+        if (Index) % 15 == 0:
+            print()
+            print(f"{f'Shelf Number: {(LayerLayout)}':^40}")  
+            LayerLayout+=1
+        print(f"| {checkItemStatus(Items):^10} ", end='')
+        if (Index+1) % 5 == 0:
+            print("|")
+
+def displayShelfItemStatusIn3d(STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ):
+    for x in range(findARangeOfListIndexIn3d(STARTX, STARTY, STARTZ), findARangeOfListIndexIn3d(ENDX, ENDY, ENDZ)+1):
+        print(f"| {checkItemStatus(flatDimensionaShelves[x]):^17} ", end='')
+        if (x+1) % size3dZShelves == 0:
+            print("|")
+    # print(f" {findARangeOfListIndexIn3d(1, 1, 1)} --> {findARangeOfListIndexIn3d(1, 3, 5)}")
+    # print(f" {findARangeOfListIndexIn3d(2, 1, 1)} --> {findARangeOfListIndexIn3d(2, 3, 5)}")
+
+# displayShelfItemStatusIn3d(1, 1, 1)
+
 oneTime = 0;
+
+showInvetoryList()
 while True:
     #if oneTime >= 3:
     #    break;
@@ -163,13 +209,22 @@ while True:
                 SearchBuffer = findItemInList(barcode)
                 
                 if barcode == 99:
-                    print("\n\n*-------------Items Already Payed!:---------------*")
-                    for i in range(len(ItemInCart)):
-                        print(f"|{(i+1):^5}# Barcode:{ItemInCart[i][0]:^10}| ItemName:{ItemInCart[i][1]:^10}| Price:{ItemInCart[i][2]}|")
-                        ItemTotalCost += ItemInCart[i][2]
-                    print(f"-----> Total Item Cost: {ItemTotalCost:^10} <----")
-                    print("*-------------------------------------------------*")
-                    print("Total Price: Null")
+                    print("\n\nChecking out...\n")
+                    print("=" * 66)
+                    print(f"{'PC SHOP - SALES RECEIPT':^66}")
+                    print("=" * 66)
+                    print(f"{'No.':<5}{'Barcode':<15}{'Item Name':<25}{'Price':>15}")
+                    print("-" * 66)
+
+                    for i, (barcode, itemName, price) in enumerate(ItemInCart, 1):
+                        print(f"{i:<5}{barcode:<15}{itemName:<25}{price:>15.2f}")
+
+                    ItemTotalCost = sum(item[2] for item in ItemInCart)
+
+                    print("-" * 66)
+                    print(f"{'TOTAL:':>45}{ItemTotalCost:>21.2f}")
+                    print("=" * 66)
+                    print(oneTime)
                     break
 
                 if barcode == 1 or barcode == 2 or barcode == -1 or barcode == 0:
@@ -178,19 +233,28 @@ while True:
             
                 if SearchBuffer[0]:
                     print(f"Added To Cart: {SearchBuffer[1]} --> Price: {SearchBuffer[2]}")
-                    addToCart(SearchBuffer)
+                    ItemTotalCostState = addToCart(SearchBuffer)
                 else:
                     LastError = "Invalid Barcode."
                     print(f"!/> Error: {LastError:^20}")
 
                 if len(ItemInCart) > 0:
-                    print("*------------------------------------------------------*")
-                    print(ItemInCart)
-                    for i in range(len(ItemInCart)):
-                        print(f"|Barcode:{ItemInCart[i][0]:^10}| ItemName:{ItemInCart[i][1]:^10}| Price:{ItemInCart[i][2]}|")
-                        ItemTotalCost += ItemInCart[i][2]
-                    print(f"-----> Total Estimate Cost: {ItemTotalCost:^10} <----")
-                    print("*------------------------------------------------------*")
+                    print("=" * 66)
+                    print(f"{'PC SHOP - CART SUMMARY':^66}")
+                    print("=" * 66)
+                    print(f"{'No.':<5}{'Barcode':<15}{'Item Name':<25}{'Price':>15}")
+                    print("-" * 66)
+
+                    for i, (barcode, itemName, price) in enumerate(ItemInCart, 1):
+                        print(f"{i:<5}{barcode:<15}{itemName:<25}{price:>15.2f}")
+
+                        if ItemTotalCostState:
+                            oneTime += 1
+                            ItemTotalCost += price
+
+                    print("-" * 66)
+                    print(f"{'TOTAL ESTIMATE:':>45}{ItemTotalCost:>21.2f}")
+                    print("=" * 66)
 
             except Exception as e:
                 print(f"Error: {e}")
@@ -207,13 +271,13 @@ while True:
                 if itemShelfType == "99":
                     break
                 elif itemShelfType.upper() == "CPU":
-                    ShowAvailableItemInShelf(0)
+                    displayShelfItemStatusIn3d(1, size3dYShelves-(size3dYShelves-1),size3dYShelves-(size3dYShelves-1), 1, size3dYShelves, size3dZShelves)
                 elif itemShelfType.upper() == "MOTHERBOARD":
-                    ShowAailableItemInShelf(1)
+                    displayShelfItemStatusIn3d(2, size3dYShelves-(size3dYShelves-1), size3dYShelves-(size3dYShelves-1), 2, size3dYShelves, size3dZShelves)
                 elif itemShelfType.upper() == "RAM":
-                    ShowAvailableItemInShelf(2)
+                    displayShelfItemStatusIn3d(3, size3dYShelves-(size3dYShelves-1), size3dYShelves-(size3dYShelves-1), 3, size3dYShelves, size3dZShelves)
                 elif itemShelfType.upper() == "STORAGE":
-                    ShowAvailableItemInShelf(3)
+                    displayShelfItemStatusIn3d(4, size3dYShelves-(size3dYShelves-1), size3dYShelves-(size3dYShelves-1), 4, size3dYShelves, size3dZShelves)
                 else:
                     print("Invalid shelf type!")
         except Exception as e:
