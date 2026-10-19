@@ -82,8 +82,8 @@ print(f"Index Position in 3d: {decodedPosition[0]}, {decodedPosition[1]}, {decod
 def findItemInList(barcode):
     for ItemIndex, ItemValue in enumerate(flatDimensionaShelves):
         if barcode == ItemValue:
-            return [True, ItemIndex, [decodePositionIndex(ItemIndex)[0], decodePositionIndex(ItemIndex)[1], decodePositionIndex(ItemIndex)[2]]]
-    return [False, [decodePositionIndex(ItemIndex)[0], decodePositionIndex(ItemIndex)[1], decodePositionIndex(ItemIndex)[2]]]
+            return [True, ItemIndex, ItemValue, [decodePositionIndex(ItemIndex)[0], decodePositionIndex(ItemIndex)[1], decodePositionIndex(ItemIndex)[2]]]
+    return [False, Null, Null,[decodePositionIndex(ItemIndex)[0], decodePositionIndex(ItemIndex)[1], decodePositionIndex(ItemIndex)[2]]]
 
 def markItemAsSold(barcode):
     Product = findItemInList(barcode)
@@ -110,47 +110,6 @@ showInvetoryList()
 def Log(Data):
     Logger.append(Data)
 
-def sell_item(barcode):  
-    for s in range(4):
-        for r in range(3):
-            for c in range(5):
-                if shelves[s][r][c] == barcode:
-                    shelves[s][r][c] = -1
-
-                    print("\nItem found!")
-                    print("Barcode:", barcode)
-                    print("Shelf:", s + 1)
-                    print("Row:", r + 1)
-                    print("Column:", c + 1)
-                    print("Status: SOLD")
-                    return
-
-    print("\nBarcode not found in stock:", barcode)
-
-def CheckItemBarcode(barcode):
-    for indexA, ValueA in enumerate(shelves):
-        for indexB, ValueB in enumerate(ValueA):
-            for indexC, ValueC in enumerate(ValueB):
-                if shelves[indexA][indexB][indexC] == barcode:
-                    return [True, ItemType[indexA][0], ItemType[indexA][1], [indexA, indexB, indexC]]
-    return [False, "Null", 0, [indexA, indexB, indexC]]
-
-def CheckItemBarcodeMod(barcode):
-    result = next(
-        (
-            (s, r, c)
-            for s, shelf in enumerate(shelves)
-            for r, row in enumerate(shelf)
-            for c, col in enumerate(row)
-            if value == barcode
-        ),
-        None
-    )
-    if result is not None:
-        s, r, c = result
-        return [True, ItemType[s][0], ItemType[r][1], [s, r, c]]
-    return [false, "Null", 0, [-1, -1, -1]]
-
 def formatThe2dShelves(Item):
     displayText = ""
 
@@ -170,12 +129,12 @@ def formatThe2dShelves(Item):
 
 
     
-def addToCart(barcode, ItemName, ItemPrice):
+def addToCart(buffer):
     for i in range(len(ItemInCart)):
-        if ItemInCart[i][0] == barcode:
+        if buffer[0] == barcode:
             print(f"{'Barcode Already Exist!':^20}")
             return
-    ItemInCart.append([barcode, ItemName, ItemPrice])
+    ItemInCart.append([buffer[2], "Null", 1])
 
 
 def ShowAvailableItemInShelf(shelvesNumber):
@@ -186,17 +145,14 @@ def ShowAvailableItemInShelf(shelvesNumber):
 
 oneTime = 0;
 while True:
-    if oneTime >= 1:
-        break;
+    #if oneTime >= 3:
+    #    break;
     print("\n===== PC SHOP SALES SYSTEM =====")
     print("1. Sell an item")
     print("2. Show Item Available On Shelf")
     print("9. Exit")
 
-    # choice = input("************\nEnter choice: ")
-    choice = "1027"
-    markItemAsSold(int(choice))
-    print(flatDimensionaShelves)
+    choice = input("************\nEnter choice: ")
 
     if choice == "1":
         print("Sell Item. Type 99 to checkout.")
@@ -204,7 +160,7 @@ while True:
         while True:
             try:
                 barcode = int(input("Enter the barcode: "))
-                SearchBuffer = CheckItemBarcode(barcode)
+                SearchBuffer = findItemInList(barcode)
                 
                 if barcode == 99:
                     print("\n\n*-------------Items Already Payed!:---------------*")
@@ -222,13 +178,14 @@ while True:
             
                 if SearchBuffer[0]:
                     print(f"Added To Cart: {SearchBuffer[1]} --> Price: {SearchBuffer[2]}")
-                    addToCart(barcode, SearchBuffer[1], SearchBuffer[2])
+                    addToCart(SearchBuffer)
                 else:
                     LastError = "Invalid Barcode."
                     print(f"!/> Error: {LastError:^20}")
 
                 if len(ItemInCart) > 0:
                     print("*------------------------------------------------------*")
+                    print(ItemInCart)
                     for i in range(len(ItemInCart)):
                         print(f"|Barcode:{ItemInCart[i][0]:^10}| ItemName:{ItemInCart[i][1]:^10}| Price:{ItemInCart[i][2]}|")
                         ItemTotalCost += ItemInCart[i][2]
