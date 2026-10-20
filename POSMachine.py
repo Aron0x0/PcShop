@@ -1,4 +1,4 @@
-
+import traceback
 # PC Shop Inventory and Sales System
 
 # Status:
@@ -90,7 +90,7 @@ def findARangeOfListValue(x, y, z):
 
 def findItemInList(barcode):
     for ItemIndex, ItemValue in enumerate(flatDimensionaShelves):
-        if barcode == ItemValue:
+        if barcode == int(ItemValue):
             return [True, ItemIndex, ItemValue, [decodePositionIndexIn3d(ItemIndex)[0], decodePositionIndexIn3d(ItemIndex)[1], decodePositionIndexIn3d(ItemIndex)[2]]]
     return [False, 0, 0,[decodePositionIndexIn3d(ItemIndex)[0], decodePositionIndexIn3d(ItemIndex)[1], decodePositionIndexIn3d(ItemIndex)[2]]]
 
@@ -147,6 +147,7 @@ def Log(Data):
     Logger.append(Data)
 
 def checkItemStatus(Item):
+    Item = int(Item)
     if Item == 0:
         displayText = "Empty"
     elif Item == 1:
@@ -190,7 +191,7 @@ def displayShelfItemStatusIn3d(STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ):
 #
 def checkItemStatusInRange(STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ):
     for x in range(findARangeOfListIndexIn3d(STARTX, STARTY, STARTZ), findARangeOfListIndexIn3d(ENDX, ENDY, ENDZ)+1):
-        if flatDimensionaShelves[x] == 0 or flatDimensionaShelves[x] == 1 or flatDimensionaShelves[x] == 2:
+        if int(flatDimensionaShelves[x]) == 0 or int(flatDimensionaShelves[x]) == 1 or int(flatDimensionaShelves[x]) == 2:
             print("Item Index Return...")
             return x
     print("Item Slot Available")
@@ -317,7 +318,10 @@ while True:
                     else:
                         print("Invalid shelf type!")
             except Exception as e:
-                print(f"Error: {str(e)}")
+                tb = traceback.extract_tb(e.__traceback__)
+                last_trace = tb[-1]
+                line_number = last_trace.lineno
+                print(f"Error: {str(e)} in {line_number}")
                 ErrorBuffer.append(str(e))
 
         elif choice == 3:
