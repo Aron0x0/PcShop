@@ -17,6 +17,7 @@ ItemType = [
 ]
 
 # ItemInCart = []
+ErrorBuffer = []
 ItemTotalCost = 0
 ItemTotalCostState = True
 
@@ -98,7 +99,7 @@ def markItemAsSold(barcode):
     if Product[0]:
         flatDimensionaShelves[Product[1]] = -1
         print(f"Product code: {Product[1]} -> Sold")
-    print(Product)
+    #print(Product)
 
 def showInvetoryList():
     Products = flatDimensionaShelves
@@ -106,11 +107,13 @@ def showInvetoryList():
     for Index, Items in enumerate(Products):
         if (Index) % 15 == 0:
             print()
-            print(f"{f'Shelf Number: {(LayerLayout)}':^40}")  
+            print("="*66)
+            print(f"|{f'<--> Shelf Number: {(LayerLayout)} <-->':^64}|")  
             LayerLayout+=1
         print(f"| {Items:^10} ", end='')
         if (Index+1) % 5 == 0:
             print("|")
+            print("="*66)
 
 def addToCart(buffer):
     for i in range(1, len(flatDimensionalItemInCart) // size2dYItemTypes + 1):
@@ -165,130 +168,191 @@ def formatTerminalResult3dShelves(Item):
     for Index, Items in enumerate(Products):
         if (Index) % 15 == 0:
             print()
+            print("="*80)
             print(f"{f'Shelf Number: {(LayerLayout)}':^40}")  
             LayerLayout+=1
         print(f"| {checkItemStatus(Items):^10} ", end='')
         if (Index+1) % 5 == 0:
             print("|")
+            print("="*80)
 
 def displayShelfItemStatusIn3d(STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ):
+    print("="*101)
     for x in range(findARangeOfListIndexIn3d(STARTX, STARTY, STARTZ), findARangeOfListIndexIn3d(ENDX, ENDY, ENDZ)+1):
         print(f"| {checkItemStatus(flatDimensionaShelves[x]):^17} ", end='')
         if (x+1) % size3dZShelves == 0:
             print("|")
+            print("="*101)
     # print(f" {findARangeOfListIndexIn3d(1, 1, 1)} --> {findARangeOfListIndexIn3d(1, 3, 5)}")
     # print(f" {findARangeOfListIndexIn3d(2, 1, 1)} --> {findARangeOfListIndexIn3d(2, 3, 5)}")
 
 # displayShelfItemStatusIn3d(1, 1, 1)
+#
+def checkItemStatusInRange(STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ):
+    for x in range(findARangeOfListIndexIn3d(STARTX, STARTY, STARTZ), findARangeOfListIndexIn3d(ENDX, ENDY, ENDZ)+1):
+        if flatDimensionaShelves[x] == 0 or flatDimensionaShelves[x] == 1 or flatDimensionaShelves[x] == 2:
+            print("Item Index Return...")
+            return x
+    print("Item Slot Available")
+    return False
 
+
+def putItemInShelf(barcode, STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ):
+    dump = checkItemStatusInRange(STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ)
+    if dump == False:
+        print("Failed to add barcode.")
+        return
+    #print(dump)
+    flatDimensionaShelves[dump] = barcode
+    print(f"Successfully Added Barcode: {barcode} -> IndexPosition: {dump}")
 oneTime = 0;
 
 showInvetoryList()
 while True:
-    #if oneTime >= 3:
-    #    break;
-    print("\n===== PC SHOP SALES SYSTEM =====")
-    print("1. Sell an item")
-    print("2. Show Item Available On Shelf")
-    print("9. Exit")
+    try:
+        #if oneTime >= 3:
+        #    break;
+        print("\n===== PC SHOP SALES SYSTEM =====")
+        print("1. Sell an item")
+        print("2. Show Item Available On Shelf")
+        print("3. Put Item In Available Shelf")
+        print("9. Exit")
 
-    choice = input("************\nEnter choice: ")
+        choice = int(input("************\nEnter choice: "))
 
-    if choice == "1":
-        print("Sell Item. Type 99 to checkout.")
+        if choice == 1:
+            print("Sell Item. Type 99 to checkout.")
 
-        while True:
-            try:
-                barcode = int(input("Enter the barcode: "))
-                SearchBuffer = findItemInList(barcode)
-                
-                if barcode == 99:
-                    print("\n\nChecking out...\n")
-                    print("=" * 66)
-                    print(f"{'PC SHOP - SALES RECEIPT':^66}")
-                    print("=" * 66)
-                    print(f"{'No.':<5}{'Barcode':<15}{'Item Name':<25}{'Price':>15}")
-                    print("-" * 66)
-
-                    ItemTotalCost = 0
-
-                    for i in range(1, len(flatDimensionalItemInCart) // size2dYItemTypes + 1):
-                        itemBarcode = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 1)]
-                        itemName = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 2)]
-                        price = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 3)]
-
-                        markItemAsSold(itemBarcode)
-
-                        print(f"{i:<5}{itemBarcode:<15}{itemName:<25}{price:>15.2f}")
-                        ItemTotalCost += price
-
-                    print("-" * 66)
-                    print(f"{'TOTAL:':>45}{ItemTotalCost:>21.2f}")
-                    print("=" * 66)
-                    flatDimensionalItemInCart.clear()
-                    break
-
-                if barcode == 1 or barcode == 2 or barcode == -1 or barcode == 0:
-                    print("?/> This is Reserve Key Numbers.")
-                    continue
-            
-                if SearchBuffer[0]:
-                    print(f"Added To Cart: {SearchBuffer[1]} --> Price: {SearchBuffer[2]}")
-                    ItemTotalCostState = addToCart(SearchBuffer)
-                else:
-                    LastError = "Invalid Barcode."
-                    print(f"!/> Error: {LastError:^20}")
-
-                if len(flatDimensionalItemInCart) > 0:
-                    print("=" * 66)
-                    print(f"{'PC SHOP - CART SUMMARY':^66}")
-                    print("=" * 66)
-                    print(f"{'No.':<5}{'Barcode':<15}{'Item Name':<25}{'Price':>15}")
-                    print("-" * 66)
-
-                    for i in range(1, len(flatDimensionalItemInCart) // size2dYItemTypes + 1):
-                        barcode = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 1)]
-                        itemName = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 2)]
-                        price = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 3)]
-
-                        print(f"{i:<5}{barcode:<15}{itemName:<25}{price:>15.2f}")
-                        ItemTotalCost += price
-
-                    print("-" * 66)
-                    print(f"{'TOTAL ESTIMATE:':>45}{ItemTotalCost:>21.2f}")
-                    print("=" * 66)
-
-            except Exception as e:
-                print(f"Error: {e}")
-                ErrorBuffer.append(e)
-
-           
-    elif choice == "2":
-        print("Inventory Item. Type 99 tov exit.")
-
-        try:
             while True:
-                itemShelfType = input("Enter CPU, Motherboard, RAM, or Storage: ")
+                try:
+                    barcode = int(input("Enter the barcode: "))
+                    SearchBuffer = findItemInList(barcode)
+                    
+                    if barcode == 99:
+                        print("\n\nChecking out...\n")
+                        print("=" * 66)
+                        print(f"{'PC SHOP - SALES RECEIPT':^66}")
+                        print("=" * 66)
+                        print(f"{'No.':<5}{'Barcode':<15}{'Item Name':<25}{'Price':>15}")
+                        print("-" * 66)
 
-                if itemShelfType == "99":
-                    break
-                elif itemShelfType.upper() == "CPU":
-                    displayShelfItemStatusIn3d(1, size3dYShelves-(size3dYShelves-1),size3dYShelves-(size3dYShelves-1), 1, size3dYShelves, size3dZShelves)
-                elif itemShelfType.upper() == "MOTHERBOARD":
-                    displayShelfItemStatusIn3d(2, size3dYShelves-(size3dYShelves-1), size3dYShelves-(size3dYShelves-1), 2, size3dYShelves, size3dZShelves)
-                elif itemShelfType.upper() == "RAM":
-                    displayShelfItemStatusIn3d(3, size3dYShelves-(size3dYShelves-1), size3dYShelves-(size3dYShelves-1), 3, size3dYShelves, size3dZShelves)
-                elif itemShelfType.upper() == "STORAGE":
-                    displayShelfItemStatusIn3d(4, size3dYShelves-(size3dYShelves-1), size3dYShelves-(size3dYShelves-1), 4, size3dYShelves, size3dZShelves)
-                else:
-                    print("Invalid shelf type!")
-        except Exception as e:
-            print(f"Error: {e}")
-            ErrorBuffer.append(e)
-    elif choice == "9":
-        print("Exiting system...")
-        break
+                        ItemTotalCost = 0
 
-    else:
-        print("Invalid choice!")
-    oneTime+=1
+                        for i in range(1, len(flatDimensionalItemInCart) // size2dYItemTypes + 1):
+                            itemBarcode = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 1)]
+                            itemName = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 2)]
+                            price = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 3)]
+
+                            markItemAsSold(itemBarcode)
+
+                            print(f"{i:<5}{itemBarcode:<15}{itemName:<25}{price:>15.2f}")
+                            ItemTotalCost += price
+
+                        print("-" * 66)
+                        print(f"{'TOTAL:':>45}{ItemTotalCost:>21.2f}")
+                        print("=" * 66)
+                        flatDimensionalItemInCart.clear()
+                        break
+
+                    if barcode == 1 or barcode == 2 or barcode == -1 or barcode == 0:
+                        print("?/> This is Reserve Key Numbers.")
+                        continue
+                
+                    if SearchBuffer[0]:
+                        print(f"Added To Cart: {SearchBuffer[1]} --> Price: {SearchBuffer[2]}")
+                        ItemTotalCostState = addToCart(SearchBuffer)
+                    else:
+                        LastError = "Invalid Barcode."
+                        print(f"!/> Error: {LastError:^20}")
+
+                    if len(flatDimensionalItemInCart) > 0:
+                        print("=" * 66)
+                        print(f"{'PC SHOP - CART SUMMARY':^66}")
+                        print("=" * 66)
+                        print(f"{'No.':<5}{'Barcode':<15}{'Item Name':<25}{'Price':>15}")
+                        print("-" * 66)
+
+                        for i in range(1, len(flatDimensionalItemInCart) // size2dYItemTypes + 1):
+                            barcode = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 1)]
+                            itemName = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 2)]
+                            price = flatDimensionalItemInCart[findARangeOfListIndexIn2d(i, 3)]
+
+                            print(f"{i:<5}{barcode:<15}{itemName:<25}{price:>15.2f}")
+                            ItemTotalCost += price
+
+                        print("-" * 66)
+                        print(f"{'TOTAL ESTIMATE:':>45}{ItemTotalCost:>21.2f}")
+                        print("=" * 66)
+
+                except Exception as e:
+                    print(f"Error: {e}")
+                    ErrorBuffer.append(e)
+
+            
+        elif choice == 2:
+            print("Inventory Item. Type 99 tov exit.")
+            showInvetoryList()
+            try:
+                while True:
+                    itemShelfType = input("Enter CPU, Motherboard, RAM, or Storage: ")
+                    
+                    if itemShelfType == "99":
+                        break
+                    elif itemShelfType.upper() == "CPU":
+                        print("="*101)
+                        print(f"|{f"CPU":^99}|")
+                        displayShelfItemStatusIn3d(1, size3dYShelves-(size3dYShelves-1),size3dYShelves-(size3dYShelves-1), 1, size3dYShelves, size3dZShelves)
+                    elif itemShelfType.upper() == "MOTHERBOARD":
+                        print("="*101)
+                        print(f"|{f"MOTHERBOARD":^99}|")
+                        displayShelfItemStatusIn3d(2, size3dYShelves-(size3dYShelves-1), size3dYShelves-(size3dYShelves-1), 2, size3dYShelves, size3dZShelves)
+                    elif itemShelfType.upper() == "RAM":
+                        print("="*101)
+                        print(f"|{f"RAM":^99}|")
+                        displayShelfItemStatusIn3d(3, size3dYShelves-(size3dYShelves-1), size3dYShelves-(size3dYShelves-1), 3, size3dYShelves, size3dZShelves)
+                    elif itemShelfType.upper() == "STORAGE":
+                        print("="*101)
+                        print(f"|{f"STORAGE":^99}|")
+                        displayShelfItemStatusIn3d(4, size3dYShelves-(size3dYShelves-1), size3dYShelves-(size3dYShelves-1), 4, size3dYShelves, size3dZShelves)
+                    else:
+                        print("Invalid shelf type!")
+            except Exception as e:
+                print(f"Error: {str(e)}")
+                ErrorBuffer.append(str(e))
+
+        elif choice == 3:
+            print("Re-Stock Inventory. Type 99 tov exit.")
+            showInvetoryList()
+            try:
+                
+                while True:
+                    showInvetoryList()
+                    print("Prefix: 10xxxx:CPU, 20xxxx:Motherboard, 30xxxx:RAM, 40xxxx:Storage")
+                    itemBarcode = input("Put Barcode: ")
+                    itemPrefix = int(str(itemBarcode)[:2])
+                    if itemBarcode == "99":
+                        break
+                    elif itemPrefix == 10:
+                        putItemInShelf(itemBarcode, 1, size3dYShelves-(size3dYShelves-1),size3dYShelves-(size3dYShelves-1), 1, size3dYShelves, size3dZShelves)
+                    elif itemPrefix == 20:
+                        putItemInShelf(itemBarcode, 2, size3dYShelves-(size3dYShelves-1), size3dYShelves-(size3dYShelves-1), 2, size3dYShelves, size3dZShelves)
+                    elif itemPrefix == 30:
+                        putItemInShelf(itemBarcode, 3, size3dYShelves-(size3dYShelves-1), size3dYShelves-(size3dYShelves-1), 3, size3dYShelves, size3dZShelves)
+                    elif itemPrefix == 40:
+                        putItemInShelf(itemBarcode, 4, size3dYShelves-(size3dYShelves-1), size3dYShelves-(size3dYShelves-1), 4, size3dYShelves, size3dZShelves)
+                    else:
+                        print("Invalid shelf type!")
+            except Exception as e:
+                print(f"Error: {str(e)}")
+                ErrorBuffer.append(str(e))
+        elif choice == 9:
+                print(ErrorBuffer)
+                print("Exiting system...")
+                break
+
+        else:
+            print("Invalid choice!")
+        oneTime+=1
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        ErrorBuffer.append(str(e))
